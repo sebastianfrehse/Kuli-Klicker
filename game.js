@@ -1,5 +1,6 @@
 import { createPen } from './engine.js';
 import { buildSkins } from './skins.js';
+import { initCloud, cloudUser, onCloudChange, cloudBusy, signIn, signOutCloud, deleteAccount } from './cloud.js';
 
 const $ = (s) => document.querySelector(s);
 const SAVE_KEY = 'kuliKlicker.v1';
@@ -171,12 +172,28 @@ function renderShop() {
   } else if (tab === 'menu') {
     list.className = 'list';
     const row = (label, val, fn) => { const b = document.createElement('button'); b.className = 'opt'; b.innerHTML = `<span>${label}</span><b>${val}</b>`; b.addEventListener('click', fn); list.appendChild(b); };
+    const cu = cloudUser();
+    const card = document.createElement('div'); card.className = 'cloud';
+    if (cu) {
+      card.innerHTML = `<div class="cu">${cu.photo ? `<img src="${cu.photo}" alt="" referrerpolicy="no-referrer">` : '<span class="av">☁️</span>'}<div><b></b><small>☁️ Spielstand wird in der Cloud gesichert</small></div></div>`;
+      card.querySelector('b').textContent = cu.name || 'Angemeldet';
+    } else {
+      card.innerHTML = `<div class="ct"><b>☁️ Spielstand sichern</b><small>Melde dich freiwillig mit Google an. Dann ist dein Fortschritt auch auf einem neuen Handy wieder da.</small></div><button class="gbtn"${cloudBusy() ? ' disabled' : ''}><span class="g">G</span> Mit Google anmelden</button>`;
+      card.querySelector('.gbtn').addEventListener('click', () => signIn());
+    }
+    list.appendChild(card);
     row('🔊 Ton', S.sound ? 'An' : 'Aus', () => { S.sound = !S.sound; save(); renderShop(); });
     row('📳 Vibration', S.vibe ? 'An' : 'Aus', () => { S.vibe = !S.vibe; save(); renderShop(); });
     const st = document.createElement('div'); st.className = 'stats';
     st.innerHTML = `Getippt: <b>${fmt(S.taps)}</b><br>Klicks gesamt: <b>${fmt(S.total)}</b><br>Skins: <b>${S.owned.length} / ${SKINS.length}</b>`;
     list.appendChild(st);
-    row('🗑️ Spielstand löschen', '', () => { if (confirm('Wirklich alles löschen und neu anfangen?')) { localStorage.removeItem(SAVE_KEY); S = fresh(); applySkin(); save(); updateTop(); renderShop(); } });
+    row('🗑️ Spielstand löschen', '', () => { if (confirm('Wirklich alles auf diesem Gerät löschen und neu anfangen?' + (cu ? ' (Der Cloud-Spielstand wird dabei auch überschrieben.)' : ''))) { localStorage.removeItem(SAVE_KEY); S = fresh(); applySkin(); save(); updateTop(); renderShop(); } });
+    if (cu) {
+      row('🚪 Abmelden', '', async () => { await signOutCloud(); renderShop(); });
+      row('❌ Konto & Cloud-Daten löschen', '', async () => { if (confirm('Dein Google-Login für Kuli-Klicker und der Cloud-Spielstand werden endgültig gelöscht. Der Spielstand auf diesem Gerät bleibt. Fortfahren?')) { await deleteAccount(); renderShop(); } });
+    }
+    const pl = document.createElement('a'); pl.className = 'plink'; pl.href = 'privacy.html'; pl.target = '_blank'; pl.rel = 'noopener'; pl.textContent = 'Datenschutzerklärung';
+    list.appendChild(pl);
   }
   refreshShop();
 }
@@ -233,4 +250,11 @@ window.addEventListener('pagehide', save);
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('./sw.js').catch(() => {});
 
 // für Tests / Icon-Erzeugung
+initCloud({
+  getState: () => S,
+  applyState: (o) => { S = Object.assign(fresh(), o); applySkin(); save(); updateTop(); if (tab) renderShop(); },
+  toast,
+});
+onCloudChange(() => { if (tab === 'menu') renderShop(); });
+
 window.__kuli = { S, pen, tap, SKINS, applySkin: (id) => { S.skin = id; if (!S.owned.includes(id)) S.owned.push(id); applySkin(); } };

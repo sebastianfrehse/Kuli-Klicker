@@ -72,6 +72,14 @@
     background: rgba(255,255,255,.95); color: #111; font-weight: 700; padding: 10px 16px; border-radius: 14px; max-width: 88vw; text-align: center;
     transition: all .3s; pointer-events: none; font-size: 14px; }
   #toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .cloud { background: linear-gradient(135deg, color-mix(in srgb, var(--glow) 30%, transparent), var(--card)); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .cloud small { display: block; opacity: .75; font-size: 12.5px; margin-top: 3px; line-height: 1.4; }
+  .cloud .cu { display: flex; align-items: center; gap: 12px; }
+  .cloud .cu img, .cloud .av { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--card); font-size: 20px; }
+  .gbtn { display: flex; align-items: center; justify-content: center; gap: 10px; background: #fff; color: #1f1f1f; border: 0; border-radius: 99px; padding: 11px 16px; font: inherit; font-weight: 700; font-size: 15px; }
+  .gbtn:disabled { opacity: .6; }
+  .gbtn .g { font-weight: 900; font-size: 17px; background: conic-gradient(from -45deg, #ea4335 0 25%, #4285f4 0 50%, #34a853 0 75%, #fbbc05 0); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .plink { display: block; text-align: center; color: #fff; opacity: .55; font-size: 13px; padding: 6px; }
   #err { position: fixed; inset: 40% 10% auto; text-align: center; background: #300; padding: 16px; border-radius: 12px; }
 </style>
 </head>
